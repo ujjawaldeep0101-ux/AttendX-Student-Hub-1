@@ -1,0 +1,1324 @@
+Build a modern, professional, mobile-first student application called **AttendX** for college/university students.
+
+The main purpose of AttendX is to help students manage **attendance, class routine, study time, exams, notes, PYQs, results, syllabus, productivity, notifications, and student community** from one app.
+
+## 1. APP TYPE AND DESIGN
+
+Create a clean, modern, professional **mobile-first responsive web app / PWA** that works smoothly on Android phones, tablets, and desktop.
+
+Use a simple student-friendly UI.
+
+Design requirements:
+
+* App name: **AttendX**
+* Professional blue/white modern theme
+* Rounded cards
+* Clean dashboard
+* Bottom navigation for mobile
+* Sidebar navigation for desktop
+* Smooth animations
+* Dark mode + light mode
+* Responsive design
+* Fast loading
+* Easy navigation
+* Icons for every major feature
+* Dashboard should show important information at a glance
+
+Main navigation:
+
+1. Home
+2. Attendance
+3. Routine
+4. Study
+5. PYQ
+6. Notes
+7. Exams
+8. Results
+9. Community
+10. Profile
+11. Settings
+
+---
+
+# 2. STUDENT AUTHENTICATION
+
+Create a complete authentication system.
+
+Student should be able to:
+
+* Sign up
+* Login
+* Logout
+* Forgot password
+* Reset password
+* Email/mobile based authentication
+* Google login if supported
+
+During registration collect:
+
+* Full Name
+* Email
+* Mobile Number
+* University
+* College
+* Branch
+* Semester
+* Year
+* Roll Number
+* Student ID
+* Profile photo
+
+After registration, take the student through an onboarding process.
+
+---
+
+# 3. COLLEGE LOCATION LOCK SYSTEM
+
+Create a **College Location Lock** feature for attendance.
+
+During setup:
+
+Student clicks:
+
+**"Set My College Location"**
+
+The app requests location permission and saves the student's college location.
+
+Save:
+
+* Latitude
+* Longitude
+* College name
+* Allowed radius
+
+Default radius can be **100–200 meters**, but allow the student to configure it.
+
+Display:
+
+**College Location: Locked**
+
+Example:
+
+College: Government Engineering College Buxar
+Location: Saved
+Status: Active
+
+The student should be able to see the saved location on a map.
+
+Allow:
+
+* Set location
+* Update location
+* Re-center location
+* Enable/disable location monitoring
+
+IMPORTANT ATTENDANCE LOGIC:
+
+When a scheduled class is about to start:
+
+### Case 1 – Phone Location is OFF
+
+Show notification:
+
+"Your location is turned off. Turn on location to help verify your class attendance."
+
+Also show a warning inside the app.
+
+### Case 2 – Phone Location is ON
+
+Do NOT send the location-off warning.
+
+The app can check whether the student is inside the saved college radius.
+
+Display:
+
+Inside college radius → "College Location Verified"
+
+Outside college radius → "You are outside the saved college location"
+
+Do not automatically mark attendance without student confirmation.
+
+---
+
+# 4. CLASS ROUTINE SYSTEM
+
+Create a complete class routine manager.
+
+Student can add:
+
+* Subject
+* Subject code
+* Teacher name
+* Classroom
+* Day
+* Start time
+* End time
+* Period number
+
+Example:
+
+Monday
+
+09:00–10:00 → Engineering Mathematics
+10:00–11:00 → Digital Electronics
+11:00–12:00 → Data Structures
+01:00–02:00 → Communication
+
+Allow:
+
+* Add class
+* Edit class
+* Delete class
+* Duplicate routine
+* Weekly routine
+* Different routine for different semesters
+* Monday–Sunday view
+* Today view
+
+Show today's classes on the dashboard.
+
+---
+
+# 5. CLASS START NOTIFICATION
+
+Automatically use the student's routine.
+
+Before a scheduled class starts, send a notification.
+
+Example:
+
+"Digital Electronics starts at 10:00 AM."
+
+If phone location is OFF:
+
+"Digital Electronics starts at 10:00 AM. Location is currently OFF."
+
+If location is ON:
+
+"Digital Electronics starts at 10:00 AM."
+
+Do not repeatedly send the location-off warning for the same class.
+
+Allow notification settings such as:
+
+* At class start
+* 5 minutes before
+* 10 minutes before
+* Custom
+
+---
+
+# 6. CLASS END ATTENDANCE CONFIRMATION
+
+After every scheduled class ends, send a notification.
+
+Example:
+
+"Digital Electronics class is over. Did you attend?"
+
+Show three options:
+
+✅ YES – PRESENT
+❌ NO – ABSENT
+🏖 HOLIDAY / CLASS CANCELLED
+
+Student must choose one.
+
+Logic:
+
+### YES
+
+Attendance = Present
+
+### NO
+
+Attendance = Absent
+
+### HOLIDAY
+
+Do not create a Present or Absent attendance entry.
+
+Holiday/classes cancelled should not negatively affect attendance percentage.
+
+Store attendance history with:
+
+* Date
+* Subject
+* Start time
+* End time
+* Status
+* Location verification status
+
+---
+
+# 7. ATTENDANCE DASHBOARD
+
+Create a powerful attendance dashboard.
+
+Show:
+
+* Overall Attendance %
+* Subject-wise Attendance %
+* Present
+* Absent
+* Total Classes
+* Classes Needed to Reach 75%
+* Classes Can Be Missed
+* Attendance Trend
+* Monthly attendance
+* Weekly attendance
+
+Use visual charts.
+
+Example:
+
+Digital Electronics → 82%
+Mathematics → 76%
+Microprocessor → 68%
+
+Use warning indicators for low attendance.
+
+Example:
+
+Below 75% → "Attendance Low"
+
+Allow filtering by:
+
+* Subject
+* Month
+* Semester
+* Academic year
+
+Also create attendance calendar.
+
+---
+
+# 8. SCIENTIFIC CALCULATOR
+
+Add a full scientific calculator.
+
+Support:
+
+* Addition
+* Subtraction
+* Multiplication
+* Division
+* Percentage
+* Square root
+* Power
+* Log
+* ln
+* sin
+* cos
+* tan
+* Inverse trigonometry
+* Factorial
+* π
+* e
+* Brackets
+* Scientific notation
+* History
+
+Make the calculator mobile-friendly.
+
+---
+
+# 9. STUDY TIMER
+
+Create a **Study Timer / Focus Timer**.
+
+Features:
+
+* Stopwatch
+* Countdown timer
+* Pomodoro
+* 25/5
+* 50/10
+* Custom timer
+* Pause
+* Resume
+* Reset
+
+Track:
+
+* Study time today
+* Study time this week
+* Study time this month
+
+Show productivity statistics.
+
+---
+
+# 10. CLOCK + ALARM
+
+Create:
+
+### Digital Clock
+
+Show current time and date.
+
+### Alarm
+
+Student can:
+
+* Set alarm
+* Edit alarm
+* Delete alarm
+* Repeat alarm
+* Select custom days
+* Add alarm label
+
+Example:
+
+"Wake Up"
+
+"Study – Mathematics"
+
+"College"
+
+"Exam"
+
+---
+
+# 11. STUDY GROUP SYSTEM
+
+Create a Study Group feature.
+
+Students can:
+
+* Create group
+* Join group
+* Share group link/code
+* Group name
+* Group description
+* Add members
+* Group chat
+* Share notes
+* Share PYQs
+* Share study resources
+* Group study timer
+
+Example groups:
+
+ECE 3rd Semester
+GEC Buxar Students
+Digital Electronics Study Group
+
+---
+
+# 12. WHITE NOISE
+
+Add a White Noise / Focus Sound section.
+
+Include:
+
+* White Noise
+* Rain
+* Thunder
+* Library
+* Fan
+* Nature
+* Ocean
+* Fireplace
+
+Features:
+
+* Play
+* Pause
+* Volume control
+* Timer
+* Background playback where supported
+
+---
+
+# 13. PYQ SECTION
+
+Create a complete **Previous Year Questions (PYQ)** system.
+
+Students can browse PYQs based on:
+
+University
+↓
+College/Branch
+↓
+Course
+↓
+Semester
+↓
+Subject
+↓
+Year
+
+Example:
+
+BEU → ECE → 3rd Semester → Digital Electronics → 2025
+
+Features:
+
+* Subject-wise PYQs
+* Year-wise PYQs
+* Chapter-wise PYQs
+* Important questions
+* VVI questions
+* Practice mode
+* Mock test
+* MCQ mode
+* Numerical questions
+* Previous year papers
+* Question search
+* Bookmark question
+* Save question
+* Mark question as solved
+
+Track every question solved by the student.
+
+---
+
+# 14. PYQ SOLVING TRACKER
+
+For each student track:
+
+* Total PYQs attempted
+* Total solved
+* Correct
+* Incorrect
+* Accuracy
+* Daily questions
+* Weekly questions
+* Monthly questions
+* Subject-wise performance
+
+Example:
+
+Today:
+25 Questions Solved
+
+Accuracy:
+84%
+
+Total PYQs:
+1,240
+
+---
+
+# 15. DAILY PYQ GOAL
+
+Create a Daily PYQ Goal system.
+
+Student can set:
+
+Daily goal = 20 questions
+
+Display:
+
+Today's Goal
+12 / 20 Completed
+
+Progress bar.
+
+Send notification if daily goal is not completed.
+
+Allow custom goals:
+
+* 10
+* 20
+* 30
+* 50
+* Custom
+
+---
+
+# 16. PYQ STUDENT RANKING SYSTEM
+
+Create a student ranking / leaderboard based on **PYQ solving activity**.
+
+Ranking metrics can include:
+
+* Total questions solved
+* Correct answers
+* Accuracy
+* Daily consistency
+* Weekly activity
+* Monthly activity
+
+Create:
+
+Global leaderboard
+University leaderboard
+College leaderboard
+Branch leaderboard
+Semester leaderboard
+Study group leaderboard
+
+Example:
+
+Rank 1
+Student A
+3,250 Questions
+
+Rank 2
+Student B
+3,100 Questions
+
+Important:
+Do not rank students using sensitive personal data.
+
+Allow students to hide their public profile or leaderboard participation.
+
+---
+
+# 17. NOTES SHARING
+
+Create a Notes section.
+
+Students can:
+
+* Upload notes
+* Upload PDF
+* Upload images
+* Create text notes
+* Download notes
+* Bookmark notes
+* Search notes
+* Share notes
+* Filter by subject
+
+Categories:
+
+* Class Notes
+* Handwritten Notes
+* Revision Notes
+* Formula Sheets
+* Important Questions
+* Lab Notes
+
+Allow reporting of inappropriate files.
+
+---
+
+# 18. SYLLABUS SYSTEM
+
+Create a dynamic syllabus system.
+
+Different universities should have different syllabus structures.
+
+Hierarchy:
+
+University
+→ Branch
+→ Semester
+→ Subject
+→ Units / Chapters
+
+Example:
+
+BEU
+ECE
+3rd Semester
+Subject
+Unit 1
+Unit 2
+Unit 3
+Unit 4
+Unit 5
+
+Support multiple universities such as:
+
+* BEU
+* AKTU
+* JNTU
+* VTU
+* MAKAUT
+* RTU
+* Other universities
+
+Create an admin/content management structure so new universities and syllabus can be added later without changing the core app.
+
+---
+
+# 19. VVI TOPICS SECTION
+
+Create a **VVI Topics** section.
+
+For each subject show:
+
+* Most important topics
+* Frequently asked topics
+* Important formulas
+* Important derivations
+* Important numerical topics
+* Important theory questions
+* Revision priority
+
+Use tags such as:
+
+VVI
+Important
+Numerical
+Theory
+Revision
+
+Do not claim a topic is guaranteed to appear in an exam. Use wording like "Important" or "Frequently Asked" based on stored question data.
+
+---
+
+# 20. EXAM SECTION
+
+Create an exam management section.
+
+Student can add:
+
+* Mid-sem exam
+* End-sem/final exam
+* Practical exam
+* Viva
+* Internal exam
+* Assignment deadline
+
+Display:
+
+Exam name
+Subject
+Date
+Time
+Room
+
+---
+
+# 21. MID-SEM REMINDER
+
+Create automatic reminders for mid-sem exams.
+
+Example:
+
+"Mid-sem Mathematics exam is in 7 days."
+
+Then:
+
+3 days before
+1 day before
+1 hour before
+
+Allow notification customization.
+
+---
+
+# 22. FINAL EXAM REMINDER
+
+Create the same reminder system for final/end-sem exams.
+
+Show:
+
+Exam countdown:
+
+"Digital Electronics Exam in 12 Days"
+
+Also show an exam calendar.
+
+---
+
+# 23. RESULT SECTION
+
+Create Result Management.
+
+Student can enter:
+
+* Semester
+* Subject
+* Grade
+* Grade point
+* Credits
+* Marks
+
+Show:
+
+* SGPA
+* CGPA
+* Semester-wise result
+* Subject-wise result
+* Total credits
+* Backlog subjects if entered
+* Result history
+
+Create graphical visualization.
+
+---
+
+# 24. SGPA CALCULATOR
+
+Create a dedicated SGPA calculator.
+
+Inputs:
+
+Subject
+Credits
+Grade / Grade Point
+
+Formula:
+
+SGPA = Σ(Credit × Grade Point) / Σ(Credits)
+
+Show:
+
+* SGPA
+* Total credits
+* Subject-wise calculation
+
+Also create CGPA calculation from multiple semester SGPAs according to entered credits.
+
+---
+
+# 25. CALENDAR
+
+Create a student academic calendar.
+
+Display:
+
+* Classes
+* Exams
+* Holidays
+* Assignments
+* Study goals
+* Events
+* Deadlines
+* Attendance history
+
+Use different visual indicators for different event types.
+
+---
+
+# 26. NOTICE SECTION
+
+Create a Notice Board.
+
+Show notices from:
+
+* College
+* University
+* Department
+* Student groups
+
+Notice fields:
+
+Title
+Description
+Date
+Source
+Important tag
+Attachment
+
+Allow students to bookmark notices.
+
+Admin should be able to publish notices.
+
+---
+
+# 27. STUDENT COMMUNITY
+
+Create a Student Community section.
+
+Students can:
+
+* Create posts
+* Ask questions
+* Answer questions
+* Like posts
+* Comment
+* Bookmark
+* Report
+* Search discussions
+
+Categories:
+
+* Study
+* Exams
+* College
+* Internship
+* Placement
+* Coding
+* Electronics
+* Projects
+* General
+
+Create moderation and report functionality.
+
+---
+
+# 28. PERSONAL AI ASSISTANT
+
+Integrate a personal AI assistant using **Groq API**.
+
+Name:
+
+**AttendX AI**
+
+The AI assistant should help students with:
+
+* Doubt solving
+* Explaining concepts
+* Summarizing notes
+* Creating revision notes
+* Generating practice questions
+* Explaining PYQs
+* Creating study plans
+* Explaining syllabus topics
+* Exam preparation
+* C++ / programming help
+* Electronics questions
+* Mathematics problems
+
+Create a dedicated AI chat interface.
+
+Features:
+
+* Chat history
+* New chat
+* Clear chat
+* Copy answer
+* Regenerate response
+* Suggested prompts
+
+IMPORTANT SECURITY:
+
+Never expose the Groq API key in frontend code.
+
+Use a secure backend/server-side API route or environment variable.
+
+Add an environment variable:
+
+GROQ_API_KEY
+
+Create a clean API service layer for the AI integration.
+
+---
+
+# 29. PERSONALIZED AI
+
+AttendX AI should understand the student's:
+
+* University
+* Branch
+* Semester
+* Subjects
+* Syllabus
+* Exam dates
+* Study goals
+* PYQ progress
+
+Use this information to provide personalized academic assistance.
+
+Example:
+
+User:
+"Kal Digital Electronics ka exam hai, kya padhun?"
+
+AI should use the student's subject/syllabus data and provide a focused revision plan.
+
+---
+
+# 30. DASHBOARD
+
+Create a powerful home dashboard.
+
+Top section:
+
+"Good Morning, [Student Name]"
+
+Show:
+
+Today's Date
+Current Time
+
+Then cards:
+
+Attendance %
+Today's Classes
+Study Time
+PYQ Goal
+Upcoming Exam
+SGPA
+
+Today's Routine:
+
+09:00 Mathematics
+10:00 Digital Electronics
+11:00 Microprocessor
+
+Upcoming:
+
+Mid-sem in 5 days
+
+PYQ Goal:
+
+15 / 20 completed
+
+Study:
+
+2h 10m today
+
+Attendance Warning:
+
+Digital Electronics – 68%
+
+Quick action buttons:
+
+Mark Attendance
+Start Study Timer
+Open Calculator
+Add Routine
+Solve PYQ
+Ask AI
+
+---
+
+# 31. PROFILE
+
+Profile should show:
+
+Name
+University
+College
+Branch
+Semester
+Roll Number
+Profile picture
+
+Statistics:
+
+Total PYQs solved
+Study hours
+Attendance
+Current SGPA
+Community activity
+
+---
+
+# 32. SETTINGS
+
+Settings should include:
+
+* Notification settings
+* Location settings
+* College location
+* Routine settings
+* Theme
+* Dark mode
+* Privacy
+* Account
+* Password
+* AI settings
+* Data export
+* Logout
+
+---
+
+# 33. NOTIFICATION SYSTEM
+
+Create a centralized notification system for:
+
+* Class starting
+* Location turned off
+* Class ended
+* Attendance confirmation
+* Daily PYQ goal
+* Study reminder
+* Mid-sem reminder
+* Final exam reminder
+* Assignment deadline
+* Important notice
+
+Allow students to customize notifications.
+
+---
+
+# 34. DATABASE STRUCTURE
+
+Design a scalable database.
+
+Recommended entities/tables:
+
+users
+student_profiles
+universities
+colleges
+branches
+semesters
+subjects
+syllabus
+units
+class_routines
+attendance
+attendance_sessions
+college_locations
+study_sessions
+alarms
+study_groups
+group_members
+group_messages
+notes
+pyq_questions
+pyq_attempts
+pyq_leaderboard
+daily_goals
+exams
+results
+notices
+calendar_events
+community_posts
+community_comments
+bookmarks
+ai_chats
+ai_messages
+notifications
+
+Use proper relationships and indexes.
+
+---
+
+# 35. SECURITY AND PRIVACY
+
+Implement:
+
+* Authentication
+* Authorization
+* Secure database rules
+* Input validation
+* File upload validation
+* API validation
+* Secure API keys
+* User data isolation
+* Report/block functions
+* Delete account
+* Data export
+
+Location data must be treated as private user data.
+
+Do not display exact private location to other students.
+
+---
+
+# 36. ADMIN PANEL
+
+Create an Admin Dashboard.
+
+Admin can manage:
+
+* Universities
+* Colleges
+* Branches
+* Semesters
+* Subjects
+* Syllabus
+* PYQs
+* VVI topics
+* Notices
+* Users
+* Community reports
+* Notes moderation
+* Exams
+* Important content
+
+Admin dashboard should have analytics.
+
+---
+
+# 37. ATTENDANCE LOGIC – IMPORTANT
+
+Implement this carefully.
+
+When class starts:
+
+1. Check phone/browser location permission/state if available.
+2. If location permission/location services are OFF:
+   show/send location warning.
+3. If location is ON:
+   silently verify location status.
+4. Do not automatically mark attendance.
+5. After class end:
+   send attendance confirmation notification.
+6. Student chooses:
+   PRESENT
+   ABSENT
+   HOLIDAY
+7. PRESENT → attendance entry = Present
+8. ABSENT → attendance entry = Absent
+9. HOLIDAY → no attendance entry
+10. Update subject attendance percentage immediately.
+11. Update dashboard immediately.
+
+Prevent duplicate attendance entries for the same class/date.
+
+Allow student to view and correct attendance records according to app rules.
+
+---
+
+# 38. TECHNICAL REQUIREMENTS
+
+Build the application with a scalable modern architecture.
+
+Use:
+
+* TypeScript
+* React
+* Responsive UI
+* Component-based architecture
+* Secure backend/API
+* Database
+* Authentication
+* PWA support
+
+Use reusable components.
+
+Create:
+
+* Loading states
+* Empty states
+* Error states
+* Form validation
+* Toast notifications
+* Confirmation dialogs
+
+Avoid fake buttons or non-functional features.
+
+Every major feature should have working UI and appropriate backend/data structure.
+
+---
+
+# 39. MOBILE EXPERIENCE
+
+Because this app is mainly for college students, prioritize mobile usage.
+
+Mobile dashboard should be extremely easy to use.
+
+Bottom navigation:
+
+Home | Attendance | Study | PYQ | Profile
+
+Important actions should be reachable within 1–2 taps.
+
+---
+
+# 40. SAMPLE STUDENT FLOW
+
+Example:
+
+Student opens AttendX.
+
+Login.
+
+Student selects:
+
+University → BEU
+College → GEC Buxar
+Branch → ECE
+Semester → 3rd Semester
+
+Student saves college location.
+
+Student enters class routine.
+
+At 9:00 AM:
+
+"Digital Electronics class starts now."
+
+If location is OFF:
+
+"Location is OFF. Turn it ON for location verification."
+
+After class:
+
+"Did you attend Digital Electronics?"
+
+YES / NO / HOLIDAY
+
+Student chooses YES.
+
+Attendance becomes Present.
+
+Later student opens PYQ.
+
+Solves 20 questions.
+
+Daily goal becomes:
+
+20/20 completed ✅
+
+Leaderboard updates.
+
+Student starts 50-minute study timer.
+
+After studying, study statistics update.
+
+Student asks AttendX AI:
+
+"Explain this Digital Electronics topic in simple language."
+
+AI answers based on the student's academic context.
+
+---
+
+# 41. UI PAGES TO CREATE
+
+Create all required pages:
+
+1. Splash Screen
+2. Login
+3. Sign Up
+4. Forgot Password
+5. Onboarding
+6. Home Dashboard
+7. Attendance
+8. Attendance Details
+9. College Location
+10. Class Routine
+11. Scientific Calculator
+12. Study Timer
+13. Alarm
+14. White Noise
+15. Study Groups
+16. PYQ Home
+17. PYQ Practice
+18. PYQ Question
+19. PYQ Leaderboard
+20. Daily Goal
+21. Notes
+22. Syllabus
+23. VVI Topics
+24. Exams
+25. Exam Countdown
+26. Results
+27. SGPA Calculator
+28. Calendar
+29. Notice Board
+30. Student Community
+31. AI Assistant
+32. Profile
+33. Settings
+34. Admin Panel
+
+---
+
+# 42. FINAL PRODUCT GOAL
+
+The final product should feel like a combination of:
+
+* Attendance Manager
+* College Routine App
+* Study Planner
+* PYQ Practice Platform
+* Student Community
+* Academic Dashboard
+* SGPA/CGPA Calculator
+* Exam Reminder
+* Notes Platform
+* AI Study Assistant
+
+The application should be named:
+
+# AttendX
+
+Tagline:
+
+**"Attend. Study. Prepare. Achieve."**
+
+Build the project in a clean, scalable way so that more universities, colleges, subjects, PYQs, AI features and student tools can be added later without rebuilding the entire application.

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AttendX"
+description = "A mobile-first academic companion for college students to track attendance, study with focus, practice PYQs, manage exams, and stay connected with their student community."
+version = "1.0.0"
+id = "artifacts/attendx"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19697
+
+[services.development]
+run = "pnpm --filter @workspace/attendx run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/attendx", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/attendx/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19697"
+BASE_PATH = "/"
