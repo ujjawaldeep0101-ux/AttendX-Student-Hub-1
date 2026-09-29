@@ -1,0 +1,262 @@
+UPDATE THE EXISTING ATTENDX PROJECT — DO NOT REBUILD THE APP FROM SCRATCH.
+
+Add and properly configure the "Developers" section in the existing AttendX application.
+
+IMPORTANT:
+- Do not remove or break any existing AttendX features.
+- Keep the existing UI theme, navigation, database and functionality.
+- Make the Developers section fully responsive for mobile, tablet and desktop.
+- Use the attached image in this prompt as the profile photo for Developer 1.
+- Do NOT use Developer 1's photo for Developer 2.
+- Developer 2 should have a separate photo upload/display field.
+
+==================================================
+DEVELOPERS SECTION
+==================================================
+
+Create a professional "Developers" page for AttendX.
+
+The page title should be:
+
+"Meet the Developers"
+
+Subtitle:
+
+"Built by students, for students."
+
+Display developer profiles as modern professional cards.
+
+Each developer card should contain:
+
+- Profile photo
+- Name
+- College
+- Batch
+- Branch
+- Role
+- LinkedIn button if a LinkedIn URL is available
+
+Cards should have:
+- Rounded corners
+- Professional blue/white AttendX theme
+- Profile image at the top
+- Clean typography
+- Hover animation on desktop
+- Tap animation on mobile
+- LinkedIn button
+- Responsive layout
+
+==================================================
+DEVELOPER 1
+==================================================
+
+Name:
+Subham Kumar Roy
+
+Role:
+Developer
+
+College:
+GEC Buxar
+
+Batch:
+2025–2029
+
+Branch:
+ECE
+
+Profile Photo:
+USE THE ATTACHED IMAGE IN THIS REQUEST AS THE PROFILE PHOTO FOR DEVELOPER 1.
+
+Do not replace, crop excessively, distort or generate a different person/photo.
+
+LinkedIn:
+https://www.linkedin.com/in/subham-kumar-roy-b38975347?utm_source=share_via&utm_content=profile&utm_medium=member_android
+
+LinkedIn button text:
+"LinkedIn"
+
+When the user clicks the LinkedIn button, open the above LinkedIn profile.
+
+==================================================
+DEVELOPER 2
+==================================================
+
+Name:
+Harsh Ranjan
+
+Role:
+Developer
+
+College:
+GEC Buxar
+
+Batch:
+2025–2029
+
+Branch:
+ECE
+
+Profile Photo:
+Create a separate profile-photo field for Developer 2.
+
+Do NOT use Developer 1's photo for Harsh Ranjan.
+
+If Developer 2 does not have a photo uploaded yet, display a professional default avatar/placeholder with an "Upload Photo" option in the admin panel.
+
+LinkedIn:
+Do not add a LinkedIn button until a LinkedIn URL is provided for Developer 2.
+
+==================================================
+DEVELOPER CARD DESIGN
+==================================================
+
+Developer 1 card example:
+
+[Developer 1 Photo]
+
+Subham Kumar Roy
+Developer
+
+GEC Buxar
+ECE • 2025–2029
+
+[ LinkedIn ]
+
+Developer 2 card:
+
+[Harsh Ranjan Photo / Placeholder]
+
+Harsh Ranjan
+Developer
+
+GEC Buxar
+ECE • 2025–2029
+
+==================================================
+DEVELOPER DETAIL PAGE
+==================================================
+
+When a developer card is clicked, open a detailed developer profile page/modal.
+
+Show:
+
+- Large profile photo
+- Full name
+- Role
+- College
+- Branch
+- Batch
+- LinkedIn button if available
+
+For Developer 1, show the LinkedIn profile button.
+
+For Developer 2, hide the LinkedIn button until a URL is added.
+
+==================================================
+ADMIN PANEL
+==================================================
+
+Add:
+
+"Developer Management"
+
+inside the existing Admin Panel.
+
+Admin should be able to:
+
+- Add developer
+- Edit developer
+- Delete developer
+- Upload developer photo
+- Replace developer photo
+- Remove developer photo
+- Change name
+- Change role
+- Change college
+- Change batch
+- Change branch
+- Add/edit LinkedIn URL
+- Enable/disable developer profile
+- Change developer display order
+
+Create separate photo storage for each developer.
+
+==================================================
+DATABASE
+==================================================
+
+Use the existing database architecture.
+
+Create/use a developer_profiles structure containing:
+
+id
+name
+role
+college
+batch
+branch
+photo_url
+linkedin_url
+display_order
+is_active
+created_at
+updated_at
+
+Do not create duplicate developer records if these developers already exist.
+
+==================================================
+NAVIGATION
+==================================================
+
+Add "Developers" to the appropriate existing navigation/menu.
+
+Do NOT add it to the main mobile bottom navigation if that makes the navigation overcrowded.
+
+It can be placed inside:
+
+More / Explore / About AttendX
+
+For desktop, it can be included in the sidebar.
+
+==================================================
+IMPORTANT IMAGE REQUIREMENT
+==================================================
+
+The attached image belongs to Developer 1:
+
+Subham Kumar Roy
+
+Use the uploaded image exactly as the profile image.
+
+Make it display correctly inside the developer card and detail profile.
+
+Use object-fit: cover where necessary, while keeping the person's face and important parts of the photo visible.
+
+Do not replace the uploaded image with an AI-generated image.
+
+==================================================
+FINAL RESULT
+==================================================
+
+The Developers page should show exactly these two developer profiles:
+
+1. Subham Kumar Roy
+   Developer
+   GEC Buxar
+   ECE
+   2025–2029
+   Attached profile photo
+   LinkedIn available
+
+2. Harsh Ranjan
+   Developer
+   GEC Buxar
+   ECE
+   2025–2029
+   Separate photo field
+   LinkedIn not added yet
+
+Make the section look like a professional real-world college/student application.
+
+DO NOT BREAK ANY EXISTING ATTENDX FEATURES.
