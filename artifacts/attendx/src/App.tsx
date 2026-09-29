@@ -9,17 +9,20 @@ import {
   MapPin, Menu, MessageCircle, MoreHorizontal, Moon, NotebookPen, Pause, Play,
   Plus, RotateCcw, Search, Send, Settings, ShieldCheck, Sparkles, Sun, Target,
   Timer, Trophy, UserRound, Users, X, Zap, Bookmark, Brain, Coffee,
-  SlidersHorizontal, type LucideIcon,
+  SlidersHorizontal, ExternalLink, Upload, Pencil, Trash2, Eye, EyeOff,
+  ImagePlus, UserPlus, type LucideIcon,
 } from 'lucide-react';
+import subhamPhoto from '@assets/WhatsApp_Image_2026-09-29_at_6.41.09_PM_1790687977737.jpeg';
 
-type Page = 'home' | 'attendance' | 'routine' | 'study' | 'pyq' | 'notes' | 'exams' | 'community' | 'assistant' | 'profile' | 'settings';
-type Modal = 'class' | 'attendance' | 'note' | 'location' | 'focus' | 'more' | null;
+type Page = 'home' | 'attendance' | 'routine' | 'study' | 'pyq' | 'notes' | 'exams' | 'community' | 'assistant' | 'developers' | 'admin' | 'profile' | 'settings';
+type Modal = 'class' | 'attendance' | 'note' | 'location' | 'focus' | 'more' | 'developer-detail' | 'developer-add' | null;
 type AttendanceStatus = 'present' | 'absent' | 'holiday';
 
 type Subject = { id: string; name: string; code: string; color: string; percentage: number; present: number; absent: number; total: number; trend: number };
 type RoutineClass = { id: string; subject: string; teacher: string; room: string; time: string; day: string; status?: string };
 type Note = { id: string; title: string; subject: string; category: string; updated: string };
 type Post = { id: string; author: string; initials: string; category: string; body: string; replies: number; likes: number; liked: boolean; time: string };
+type Developer = { id: string; name: string; role: string; college: string; batch: string; branch: string; photoUrl: string; linkedinUrl: string; displayOrder: number; isActive: boolean };
 
 const queryClient = new QueryClient();
 
@@ -33,6 +36,8 @@ const pageMeta: Record<Page, { label: string; icon: LucideIcon }> = {
   exams: { label: 'Exams', icon: GraduationCap },
   community: { label: 'Community', icon: Users },
   assistant: { label: 'AI Assistant', icon: Sparkles },
+  developers: { label: 'Developers', icon: Users },
+  admin: { label: 'Admin Panel', icon: ShieldCheck },
   profile: { label: 'Profile', icon: UserRound },
   settings: { label: 'Settings', icon: Settings },
 };
@@ -60,6 +65,32 @@ const initialPosts: Post[] = [
   { id: 'p2', author: 'Rohan Verma', initials: 'RV', category: 'Campus life', body: 'The east gate shuttle is running every 15 minutes after 4 PM today. Sharing in case someone needs it.', replies: 3, likes: 17, liked: true, time: '1 hr ago' },
   { id: 'p3', author: 'Meera Iyer', initials: 'MI', category: 'Resources', body: 'Uploaded clean OS scheduling notes to the shared drive. The worked examples are especially useful.', replies: 12, likes: 31, liked: false, time: '3 hrs ago' },
 ];
+const initialDevelopers: Developer[] = [
+  {
+    id: 'subham-kumar-roy',
+    name: 'Subham Kumar Roy',
+    role: 'Developer',
+    college: 'GEC Buxar',
+    batch: '2025–2029',
+    branch: 'ECE',
+    photoUrl: subhamPhoto,
+    linkedinUrl: 'https://www.linkedin.com/in/subham-kumar-roy-b38975347?utm_source=share_via&utm_content=profile&utm_medium=member_android',
+    displayOrder: 1,
+    isActive: true,
+  },
+  {
+    id: 'harsh-ranjan',
+    name: 'Harsh Ranjan',
+    role: 'Developer',
+    college: 'GEC Buxar',
+    batch: '2025–2029',
+    branch: 'ECE',
+    photoUrl: '',
+    linkedinUrl: '',
+    displayOrder: 2,
+    isActive: true,
+  },
+];
 
 function useStoredState<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
@@ -76,8 +107,13 @@ function useStoredState<T>(key: string, initial: T) {
   return [value, setValue] as const;
 }
 
+function pageFromHash(): Page {
+  const hash = window.location.hash.replace(/^#/, '') as Page;
+  return hash && Object.prototype.hasOwnProperty.call(pageMeta, hash) ? hash : 'home';
+}
+
 function App() {
-  const [page, setPage] = useState<Page>('home');
+  const [page, setPage] = useState<Page>(pageFromHash);
   const [modal, setModal] = useState<Modal>(null);
   const [dark, setDark] = useStoredState('attendx-theme', false);
   const [locationOn, setLocationOn] = useStoredState('attendx-location', true);
@@ -85,10 +121,12 @@ function App() {
   const [routine, setRoutine] = useStoredState<RoutineClass[]>('attendx-routine', initialRoutine);
   const [notes, setNotes] = useStoredState<Note[]>('attendx-notes', initialNotes);
   const [posts, setPosts] = useStoredState<Post[]>('attendx-posts', initialPosts);
+  const [developers, setDevelopers] = useStoredState<Developer[]>('attendx-developers', initialDevelopers);
   const [goal, setGoal] = useStoredState('attendx-pyq', 12);
   const [focusSeconds, setFocusSeconds] = useStoredState('attendx-focus', 0);
   const [timerRunning, setTimerRunning] = useState(false);
   const [toast, setToast] = useState('');
+  const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -103,10 +141,15 @@ function App() {
     const timeout = window.setTimeout(() => setToast(''), 2400);
     return () => window.clearTimeout(timeout);
   }, [toast]);
+  useEffect(() => {
+    const onHashChange = () => setPage(pageFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
 
   const notify = (message: string) => setToast(message);
   const today = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
-  const navigate = (next: Page) => { setPage(next); setModal(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const navigate = (next: Page) => { setPage(next); window.history.replaceState(null, '', next === 'home' ? `${window.location.pathname}${window.location.search}` : `#${next}`); setModal(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const averageAttendance = Math.round(subjects.reduce((sum, subject) => sum + subject.percentage, 0) / subjects.length);
   const quickActions = [
     { label: 'Mark attendance', icon: CheckCircle2, page: 'attendance' as Page, action: () => setModal('attendance'), tone: 'blue' },
@@ -141,6 +184,46 @@ function App() {
     setModal(null); notify('Note saved to your library.');
   };
   const toggleLike = (id: string) => setPosts((current) => current.map((post) => post.id === id ? { ...post, liked: !post.liked, likes: post.likes + (post.liked ? -1 : 1) } : post));
+  const updateDeveloper = (id: string, patch: Partial<Developer>) => setDevelopers((current) => current.map((developer) => developer.id === id ? { ...developer, ...patch } : developer));
+  const handleDeveloperPhoto = (id: string, file: File | undefined) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      notify('Please choose an image file.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      updateDeveloper(id, { photoUrl: String(reader.result || '') });
+      notify('Developer photo updated.');
+    };
+    reader.readAsDataURL(file);
+  };
+  const removeDeveloper = (id: string) => {
+    const developer = developers.find((item) => item.id === id);
+    if (!developer || !window.confirm(`Remove ${developer.name} from AttendX?`)) return;
+    setDevelopers((current) => current.filter((item) => item.id !== id));
+    notify('Developer profile removed.');
+  };
+  const addDeveloper = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const name = String(data.get('name') || '').trim();
+    if (!name) return;
+    setDevelopers((current) => [...current, {
+      id: `${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Date.now()}`,
+      name,
+      role: String(data.get('role') || 'Developer'),
+      college: String(data.get('college') || ''),
+      batch: String(data.get('batch') || ''),
+      branch: String(data.get('branch') || ''),
+      photoUrl: '',
+      linkedinUrl: String(data.get('linkedinUrl') || ''),
+      displayOrder: current.length + 1,
+      isActive: true,
+    }]);
+    setModal(null);
+    notify('Developer profile added.');
+  };
   const formatTimer = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
   return (
@@ -161,6 +244,8 @@ function App() {
                 {page === 'exams' && <ExamsPage notify={notify} />}
                 {page === 'community' && <CommunityPage posts={posts} toggleLike={toggleLike} notify={notify} />}
                 {page === 'assistant' && <AssistantPage notify={notify} />}
+                 {page === 'developers' && <DevelopersPage developers={developers} onSelect={(developer) => { setSelectedDeveloper(developer); setModal('developer-detail'); }} />}
+                 {page === 'admin' && <DeveloperAdminPage developers={developers} updateDeveloper={updateDeveloper} handlePhoto={handleDeveloperPhoto} removeDeveloper={removeDeveloper} openAdd={() => setModal('developer-add')} notify={notify} />}
                 {page === 'profile' && <ProfilePage navigate={navigate} />}
                 {page === 'settings' && <SettingsPage dark={dark} setDark={setDark} locationOn={locationOn} setLocationOn={setLocationOn} notify={notify} />}
               </div>
@@ -171,6 +256,8 @@ function App() {
           {modal === 'class' && <ModalFrame title="Add to routine" subtitle="Keep your week visible at a glance." onClose={() => setModal(null)}><ClassForm onSubmit={addClass} /></ModalFrame>}
           {modal === 'note' && <ModalFrame title="Create a note" subtitle="Capture the useful bit while it is fresh." onClose={() => setModal(null)}><NoteForm onSubmit={addNote} /></ModalFrame>}
           {modal === 'focus' && <ModalFrame title="Focus session" subtitle="A small start still counts." onClose={() => setModal(null)}><FocusDialog seconds={focusSeconds} running={timerRunning} setRunning={setTimerRunning} reset={() => { setFocusSeconds(0); setTimerRunning(false); }} onClose={() => setModal(null)} /></ModalFrame>}
+           {modal === 'developer-detail' && selectedDeveloper && <DeveloperDetailModal developer={selectedDeveloper} onClose={() => { setModal(null); setSelectedDeveloper(null); }} />}
+           {modal === 'developer-add' && <ModalFrame title="Add developer" subtitle="Create a profile for the AttendX team." onClose={() => setModal(null)}><DeveloperForm onSubmit={addDeveloper} /></ModalFrame>}
           {modal === 'more' && <MorePanel page={page} navigate={navigate} onClose={() => setModal(null)} />}
           {toast && <div data-testid="toast-success" className="fixed bottom-24 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl dark:bg-white dark:text-slate-900"><CheckCircle2 size={17} className="text-emerald-400" />{toast}</div>}
         </div>
@@ -195,6 +282,12 @@ function Sidebar({ page, navigate }: { page: Page; navigate: (page: Page) => voi
     <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-slate-500">Personal</p>
     <nav className="space-y-1">
       {(['assistant', 'profile', 'settings'] as Page[]).map((item) => <NavButton key={item} page={item} active={page === item} navigate={navigate} dark />)}
+    </nav>
+    <div className="my-7 h-px bg-sidebar-border" />
+    <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-slate-500">About AttendX</p>
+    <nav className="space-y-1">
+      <NavButton page="developers" active={page === 'developers'} navigate={navigate} dark />
+      <NavButton page="admin" active={page === 'admin'} navigate={navigate} dark />
     </nav>
     <div className="mt-auto rounded-2xl border border-sidebar-border bg-sidebar-accent p-3">
       <div className="mb-2 flex items-center gap-2 text-sidebar-primary"><ShieldCheck size={16} /><span className="text-xs font-bold">Your data stays yours</span></div>
@@ -310,6 +403,92 @@ function SettingsPage({ dark, setDark, locationOn, setLocationOn, notify }: { da
   return <div className="space-y-6"><PageIntro eyebrow="Make it yours" title="Settings that stay out of your way." description="A few quiet controls for how AttendX fits into your day." /><section className="glass-card divide-y divide-border rounded-2xl p-2 sm:max-w-3xl"><SettingRow icon={dark ? Moon : Sun} title="Appearance" description={dark ? 'Dark mode is on' : 'Light mode is on'} control={<Toggle data-testid="toggle-theme" checked={dark} onClick={() => setDark(!dark)} />} /><SettingRow icon={MapPin} title="Location verification" description={locationOn ? 'Confirm attendance near your campus' : 'Attendance will be confirmed manually'} control={<Toggle data-testid="toggle-location" checked={locationOn} onClick={setLocation} />} /><SettingRow icon={Bell} title="Smart reminders" description="Upcoming classes and study nudges" control={<Toggle data-testid="toggle-reminders" checked onClick={() => notify('Smart reminders are enabled.')} />} /><SettingRow icon={LockKeyhole} title="Privacy" description="Your data is stored on this device" control={<ChevronRight size={18} className="text-muted-foreground" />} /></section><section className="glass-card rounded-2xl p-5 sm:max-w-3xl"><div className="flex items-start gap-3"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-950/60"><ShieldCheck size={17} /></div><div><p className="text-sm font-extrabold">Local-first by design</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">AttendX keeps your routine, notes, and progress on this device. No account or server is needed for this demo.</p></div></div></section></div>;
 }
 
+function DevelopersPage({ developers, onSelect }: { developers: Developer[]; onSelect: (developer: Developer) => void }) {
+  const activeDevelopers = developers.filter((developer) => developer.isActive).sort((a, b) => a.displayOrder - b.displayOrder);
+  return <div className="space-y-6">
+    <PageIntro eyebrow="The people behind AttendX" title="Meet the Developers" description="Built by students, for students." />
+    <section className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#0e4c92] via-[#147bd3] to-[#45b8de] p-5 text-white shadow-xl shadow-blue-900/10 sm:p-7">
+      <div className="absolute -right-10 -top-16 h-44 w-44 rounded-full border-[22px] border-white/10" />
+      <div className="relative max-w-2xl"><div className="mb-2 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.18em] text-blue-100"><Users size={14} /> Team AttendX</div><h2 className="text-2xl font-extrabold tracking-[-.04em] sm:text-3xl">A student-built space for better semesters.</h2><p className="mt-2 max-w-xl text-sm leading-relaxed text-blue-50/85">Meet the people shaping a simpler way to attend, study, prepare, and achieve.</p></div>
+    </section>
+    {activeDevelopers.length ? <div className="grid gap-5 sm:grid-cols-2">{activeDevelopers.map((developer) => <DeveloperCard key={developer.id} developer={developer} onSelect={onSelect} />)}</div> : <EmptyState icon={Users} title="Team profiles are taking shape" description="Developer profiles will appear here once they are published." action="Open admin panel" onClick={() => window.location.hash = 'admin'} />}
+  </div>;
+}
+
+function DeveloperCard({ developer, onSelect }: { developer: Developer; onSelect: (developer: Developer) => void }) {
+  return <article data-testid={`developer-card-${developer.id}`} role="button" tabIndex={0} onClick={() => onSelect(developer)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') onSelect(developer); }} className="glass-card lift group cursor-pointer overflow-hidden rounded-[24px] transition-transform active:scale-[.99]">
+    <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-blue-100 via-sky-50 to-cyan-100 dark:from-blue-950/60 dark:via-slate-900 dark:to-cyan-950/40">
+      {developer.photoUrl ? <img src={developer.photoUrl} alt={`${developer.name} profile`} className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]" /> : <DeveloperPlaceholder name={developer.name} />}
+      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950/45 to-transparent" />
+      <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-slate-950/35 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[.15em] text-white backdrop-blur">{developer.role}</span>
+    </div>
+    <div className="p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4"><div><h3 className="text-xl font-extrabold tracking-[-.03em]">{developer.name}</h3><p className="mt-1 text-sm font-semibold text-primary">{developer.role}</p></div><ChevronRight size={18} className="mt-1 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-primary" /></div>
+      <div className="mt-5 space-y-2 text-xs text-muted-foreground"><p className="flex items-center gap-2"><GraduationCap size={14} className="text-primary" />{developer.college}</p><p className="flex items-center gap-2"><BookOpen size={14} className="text-primary" />{developer.branch} <span className="text-border">•</span> {developer.batch}</p></div>
+      {developer.linkedinUrl && <a data-testid={`developer-linkedin-${developer.id}`} href={developer.linkedinUrl} target="_blank" rel="noreferrer" onClick={(event) => event.stopPropagation()} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#0a66c2] px-3.5 py-2.5 text-xs font-extrabold text-white transition hover:-translate-y-0.5 hover:bg-[#07579f]"><ExternalLink size={14} /> LinkedIn</a>}
+    </div>
+  </article>;
+}
+
+function DeveloperPlaceholder({ name }: { name: string }) {
+  const initials = name.split(' ').map((part) => part[0]).join('').slice(0, 2).toUpperCase();
+  return <div className="flex h-full w-full flex-col items-center justify-center bg-[radial-gradient(circle_at_50%_25%,hsl(200_85%_78%/.8),transparent_38%),linear-gradient(145deg,hsl(215_70%_93%),hsl(196_80%_83%))] text-primary dark:bg-[radial-gradient(circle_at_50%_25%,hsl(200_75%_32%/.55),transparent_38%),linear-gradient(145deg,hsl(221_45%_18%),hsl(205_55%_24%))]"><div className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-white/70 bg-white/60 text-2xl font-extrabold shadow-xl dark:border-white/10 dark:bg-white/10">{initials}</div><p className="mt-4 text-xs font-bold uppercase tracking-[.16em] text-primary/70 dark:text-cyan-200/70">Photo pending</p></div>;
+}
+
+function DeveloperDetailModal({ developer, onClose }: { developer: Developer; onClose: () => void }) {
+  return <ModalFrame title="Developer profile" subtitle="The people building your campus companion." onClose={onClose}>
+    <div className="overflow-hidden rounded-2xl border border-border bg-muted/50">
+      <div className="relative aspect-[16/10] overflow-hidden bg-muted">{developer.photoUrl ? <img src={developer.photoUrl} alt={`${developer.name} profile`} className="h-full w-full object-cover object-center" /> : <DeveloperPlaceholder name={developer.name} />}</div>
+      <div className="p-5 sm:p-6"><p className="text-2xl font-extrabold tracking-[-.04em]">{developer.name}</p><p className="mt-1 text-sm font-bold text-primary">{developer.role}</p><div className="mt-5 grid gap-3 text-sm"><div className="flex items-center gap-3"><GraduationCap size={16} className="text-primary" /><span><span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">College</span>{developer.college}</span></div><div className="flex items-center gap-3"><BookOpen size={16} className="text-primary" /><span><span className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Branch · Batch</span>{developer.branch} · {developer.batch}</span></div></div>{developer.linkedinUrl && <a data-testid={`detail-linkedin-${developer.id}`} href={developer.linkedinUrl} target="_blank" rel="noreferrer" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0a66c2] px-4 py-3 text-xs font-extrabold text-white transition hover:bg-[#07579f]"><ExternalLink size={15} /> Open LinkedIn profile</a>}</div>
+    </div>
+  </ModalFrame>;
+}
+
+function DeveloperAdminPage({ developers, updateDeveloper, handlePhoto, removeDeveloper, openAdd, notify }: { developers: Developer[]; updateDeveloper: (id: string, patch: Partial<Developer>) => void; handlePhoto: (id: string, file: File | undefined) => void; removeDeveloper: (id: string) => void; openAdd: () => void; notify: (message: string) => void }) {
+  const ordered = [...developers].sort((a, b) => a.displayOrder - b.displayOrder);
+  return <div className="space-y-6">
+    <PageIntro eyebrow="Content controls" title="Developer Management" description="Keep the AttendX team profiles accurate, polished, and ready to publish." action={<button data-testid="button-add-developer" onClick={openAdd} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-extrabold text-primary-foreground"><UserPlus size={16} /> Add developer</button>} />
+    <section className="glass-card rounded-2xl border-blue-200/70 bg-blue-50/60 p-4 dark:border-blue-900/50 dark:bg-blue-950/20 sm:p-5"><div className="flex items-start gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-primary dark:bg-blue-950/70"><ShieldCheck size={17} /></div><div><p className="text-sm font-extrabold">Separate profile media</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Each developer has an independent photo field. Replacing one profile image never changes another developer’s image.</p></div></div></section>
+    <div className="space-y-4">{ordered.map((developer) => <DeveloperAdminCard key={developer.id} developer={developer} updateDeveloper={updateDeveloper} handlePhoto={handlePhoto} removeDeveloper={removeDeveloper} notify={notify} />)}</div>
+    {!ordered.length && <EmptyState icon={Users} title="No developer profiles yet" description="Add the first profile to publish it on the Developers page." action="Add developer" onClick={openAdd} />}
+  </div>;
+}
+
+function DeveloperAdminCard({ developer, updateDeveloper, handlePhoto, removeDeveloper, notify }: { developer: Developer; updateDeveloper: (id: string, patch: Partial<Developer>) => void; handlePhoto: (id: string, file: File | undefined) => void; removeDeveloper: (id: string) => void; notify: (message: string) => void }) {
+  const field = (key: keyof Developer, value: string) => updateDeveloper(developer.id, { [key]: value } as Partial<Developer>);
+  return <section data-testid={`admin-developer-${developer.id}`} className="glass-card rounded-2xl p-4 sm:p-6">
+    <div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-3"><span className={`h-2.5 w-2.5 rounded-full ${developer.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`} /><div><p className="text-sm font-extrabold">{developer.name || 'Unnamed developer'}</p><p className="text-[11px] text-muted-foreground">{developer.isActive ? 'Published on Developers page' : 'Hidden from public page'}</p></div></div><div className="flex items-center gap-2"><label className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[11px] font-bold"><span>Order</span><input aria-label={`${developer.name} display order`} type="number" min="1" value={developer.displayOrder} onChange={(event) => updateDeveloper(developer.id, { displayOrder: Math.max(1, Number(event.target.value) || 1) })} className="w-10 bg-transparent text-center outline-none" /></label><button data-testid={`button-toggle-developer-${developer.id}`} onClick={() => updateDeveloper(developer.id, { isActive: !developer.isActive })} className="flex items-center gap-2 rounded-xl border border-border px-3 py-2 text-[11px] font-bold">{developer.isActive ? <Eye size={14} /> : <EyeOff size={14} />}{developer.isActive ? 'Visible' : 'Hidden'}</button><button data-testid={`button-delete-developer-${developer.id}`} onClick={() => removeDeveloper(developer.id)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-rose-200 text-rose-600 transition hover:bg-rose-50 dark:border-rose-950 dark:hover:bg-rose-950/30"><Trash2 size={15} /></button></div></div>
+    <div className="grid gap-5 lg:grid-cols-[180px_1fr]">
+      <div><div className="aspect-square overflow-hidden rounded-2xl bg-muted">{developer.photoUrl ? <img src={developer.photoUrl} alt="" className="h-full w-full object-cover object-center" /> : <DeveloperPlaceholder name={developer.name || 'Developer'} />}</div><label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-extrabold transition hover:border-primary/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/20"><Upload size={14} /> {developer.photoUrl ? 'Replace photo' : 'Upload photo'}<input data-testid={`input-photo-${developer.id}`} type="file" accept="image/*" onChange={(event) => handlePhoto(developer.id, event.target.files?.[0])} className="sr-only" /></label>{developer.photoUrl && <button data-testid={`button-remove-photo-${developer.id}`} onClick={() => { updateDeveloper(developer.id, { photoUrl: '' }); notify('Developer photo removed.'); }} className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-[11px] font-bold text-muted-foreground hover:bg-muted"><Trash2 size={13} /> Remove photo</button>}</div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <AdminField label="Name" value={developer.name} onChange={(value) => field('name', value)} />
+        <AdminField label="Role" value={developer.role} onChange={(value) => field('role', value)} />
+        <AdminField label="College" value={developer.college} onChange={(value) => field('college', value)} />
+        <AdminField label="Branch" value={developer.branch} onChange={(value) => field('branch', value)} />
+        <AdminField label="Batch" value={developer.batch} onChange={(value) => field('batch', value)} />
+        <AdminField label="LinkedIn URL (optional)" value={developer.linkedinUrl} onChange={(value) => field('linkedinUrl', value)} placeholder="https://linkedin.com/in/..." />
+        <div className="sm:col-span-2 flex justify-end border-t border-border pt-4"><button data-testid={`button-save-developer-${developer.id}`} onClick={() => notify(`${developer.name || 'Developer'} profile saved.`)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-extrabold text-primary-foreground"><Check size={15} /> Save changes</button></div>
+      </div>
+    </div>
+  </section>;
+}
+
+function AdminField({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (value: string) => void; placeholder?: string }) {
+  return <label className="block"><span className="mb-1.5 block text-[11px] font-bold uppercase tracking-wider text-muted-foreground">{label}</span><input value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary" /></label>;
+}
+
+function DeveloperForm({ onSubmit }: { onSubmit: (event: FormEvent<HTMLFormElement>) => void }) {
+  return <form onSubmit={onSubmit} className="space-y-4">
+    <div className="grid gap-4 sm:grid-cols-2"><AdminFormField name="name" label="Name" placeholder="Full name" required /><AdminFormField name="role" label="Role" placeholder="Developer" defaultValue="Developer" required /><AdminFormField name="college" label="College" placeholder="GEC Buxar" required /><AdminFormField name="branch" label="Branch" placeholder="ECE" required /><AdminFormField name="batch" label="Batch" placeholder="2025–2029" required /><AdminFormField name="linkedinUrl" label="LinkedIn URL (optional)" placeholder="https://linkedin.com/in/..." /></div>
+    <div className="rounded-xl border border-dashed border-border p-3 text-xs text-muted-foreground"><div className="flex items-center gap-2 font-bold text-foreground"><ImagePlus size={15} className="text-primary" /> Photo upload</div><p className="mt-1">You can add or replace this developer’s photo from the management card after creating the profile.</p></div>
+    <button data-testid="button-create-developer" className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground"><UserPlus size={16} /> Add developer</button>
+  </form>;
+}
+
+function AdminFormField({ name, label, placeholder, defaultValue, required = false }: { name: string; label: string; placeholder: string; defaultValue?: string; required?: boolean }) {
+  return <label className="block"><span className="mb-1.5 block text-xs font-bold">{label}</span><input name={name} required={required} defaultValue={defaultValue} placeholder={placeholder} className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary" /></label>;
+}
+
 function SettingRow({ icon: Icon, title, description, control }: { icon: LucideIcon; title: string; description: string; control: ReactNode }) {
   return <div className="flex items-center gap-3 p-4"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground"><Icon size={17} /></div><div className="min-w-0 flex-1"><p className="text-sm font-extrabold">{title}</p><p className="mt-1 text-xs text-muted-foreground">{description}</p></div>{control}</div>;
 }
@@ -349,7 +528,7 @@ function FocusDialog({ seconds, running, setRunning, reset, onClose }: { seconds
 }
 
 function MorePanel({ page, navigate, onClose }: { page: Page; navigate: (page: Page) => void; onClose: () => void }) {
-  const pages: Page[] = ['routine', 'notes', 'exams', 'community', 'assistant', 'settings'];
+  const pages: Page[] = ['routine', 'notes', 'exams', 'community', 'assistant', 'developers', 'admin', 'settings'];
   return <div className="fixed inset-0 z-[60] flex items-end bg-slate-950/35 backdrop-blur-sm sm:hidden"><div className="w-full rounded-t-[26px] bg-card p-5"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-extrabold">More of AttendX</h2><p className="mt-1 text-xs text-muted-foreground">Everything else, still one tap away.</p></div><button data-testid="button-close-more" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground"><X size={18} /></button></div><div className="grid grid-cols-2 gap-2">{pages.map((item) => <button data-testid={`more-nav-${item}`} onClick={() => navigate(item)} key={item} className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-bold ${page === item ? 'border-primary bg-blue-50 text-primary dark:bg-blue-950/30' : 'border-border'}`}><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted"><MoreIcon page={item} /></span>{pageMeta[item].label}</button>)}</div></div></div>;
 }
 
