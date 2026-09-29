@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SignIn, SignUp, useAuth, useClerk, useUser } from '@clerk/react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import {
@@ -112,8 +113,19 @@ function pageFromHash(): Page {
   return hash && Object.prototype.hasOwnProperty.call(pageMeta, hash) ? hash : 'home';
 }
 
+type AuthRoute = 'sign-in' | 'sign-up' | null;
+const authBasePath = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+function authRouteFromPath(): AuthRoute {
+  const path = window.location.pathname;
+  if (path === `${authBasePath}/sign-in` || path.startsWith(`${authBasePath}/sign-in/`)) return 'sign-in';
+  if (path === `${authBasePath}/sign-up` || path.startsWith(`${authBasePath}/sign-up/`)) return 'sign-up';
+  return null;
+}
+
 function App() {
   const [page, setPage] = useState<Page>(pageFromHash);
+  const [authRoute, setAuthRoute] = useState<AuthRoute>(authRouteFromPath);
   const [modal, setModal] = useState<Modal>(null);
   const [dark, setDark] = useStoredState('attendx-theme', false);
   const [locationOn, setLocationOn] = useStoredState('attendx-location', true);
@@ -127,6 +139,9 @@ function App() {
   const [timerRunning, setTimerRunning] = useState(false);
   const [toast, setToast] = useState('');
   const [selectedDeveloper, setSelectedDeveloper] = useState<Developer | null>(null);
+  const { isLoaded, isSignedIn } = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -146,10 +161,22 @@ function App() {
     window.addEventListener('hashchange', onHashChange);
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
+  useEffect(() => {
+    const onPathChange = () => setAuthRoute(authRouteFromPath());
+    window.addEventListener('popstate', onPathChange);
+    return () => window.removeEventListener('popstate', onPathChange);
+  }, []);
 
   const notify = (message: string) => setToast(message);
   const today = new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).format(new Date());
   const navigate = (next: Page) => { setPage(next); window.history.replaceState(null, '', next === 'home' ? `${window.location.pathname}${window.location.search}` : `#${next}`); setModal(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const openAuth = (route: Exclude<AuthRoute, null>) => {
+    const nextPath = `${authBasePath}/${route}`;
+    window.history.pushState({}, '', nextPath);
+    setAuthRoute(route);
+    setModal(null);
+  };
+  const handleSignOut = () => signOut({ redirectUrl: authBasePath || '/' });
   const averageAttendance = Math.round(subjects.reduce((sum, subject) => sum + subject.percentage, 0) / subjects.length);
   const quickActions = [
     { label: 'Mark attendance', icon: CheckCircle2, page: 'attendance' as Page, action: () => setModal('attendance'), tone: 'blue' },
@@ -226,6 +253,10 @@ function App() {
   };
   const formatTimer = (seconds: number) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
+  if (authRoute) {
+    return <AuthScreen route={authRoute} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -233,7 +264,7 @@ function App() {
           <div className="mx-auto flex min-h-[100dvh] max-w-[1600px]">
             <Sidebar page={page} navigate={navigate} />
             <main className="min-w-0 flex-1 pb-20 md:pb-8">
-              <Topbar page={page} today={today} dark={dark} setDark={setDark} notify={notify} navigate={navigate} />
+              <Topbar page={page} today={today} dark={dark} setDark={setDark} notify={notify} navigate={navigate} isSignedIn={Boolean(isSignedIn)} userName={user?.firstName || user?.emailAddresses[0]?.emailAddress || ''} onSignIn={() => openAuth('sign-in')} />
               <div className="mx-auto max-w-[1260px] px-4 py-5 sm:px-6 lg:px-10 lg:py-8">
                 {page === 'home' && <HomePage today={today} averageAttendance={averageAttendance} subjects={subjects} routine={routine} goal={goal} locationOn={locationOn} navigate={navigate} quickActions={quickActions} setModal={setModal} />}
                 {page === 'attendance' && <AttendancePage subjects={subjects} average={averageAttendance} openModal={() => setModal('attendance')} />}
@@ -245,7 +276,7 @@ function App() {
                 {page === 'community' && <CommunityPage posts={posts} toggleLike={toggleLike} notify={notify} />}
                 {page === 'assistant' && <AssistantPage notify={notify} />}
                  {page === 'developers' && <DevelopersPage developers={developers} onSelect={(developer) => { setSelectedDeveloper(developer); setModal('developer-detail'); }} />}
-                 {page === 'admin' && <DeveloperAdminPage developers={developers} updateDeveloper={updateDeveloper} handlePhoto={handleDeveloperPhoto} removeDeveloper={removeDeveloper} openAdd={() => setModal('developer-add')} notify={notify} />}
+                  {page === 'admin' && (!isLoaded ? <AdminLoadingState /> : isSignedIn ? <DeveloperAdminPage developers={developers} updateDeveloper={updateDeveloper} handlePhoto={handleDeveloperPhoto} removeDeveloper={removeDeveloper} openAdd={() => setModal('developer-add')} notify={notify} /> : <AdminAccessWall onSignIn={() => openAuth('sign-in')} />)}
                 {page === 'profile' && <ProfilePage navigate={navigate} />}
                 {page === 'settings' && <SettingsPage dark={dark} setDark={setDark} locationOn={locationOn} setLocationOn={setLocationOn} notify={notify} />}
               </div>
@@ -258,7 +289,7 @@ function App() {
           {modal === 'focus' && <ModalFrame title="Focus session" subtitle="A small start still counts." onClose={() => setModal(null)}><FocusDialog seconds={focusSeconds} running={timerRunning} setRunning={setTimerRunning} reset={() => { setFocusSeconds(0); setTimerRunning(false); }} onClose={() => setModal(null)} /></ModalFrame>}
            {modal === 'developer-detail' && selectedDeveloper && <DeveloperDetailModal developer={selectedDeveloper} onClose={() => { setModal(null); setSelectedDeveloper(null); }} />}
            {modal === 'developer-add' && <ModalFrame title="Add developer" subtitle="Create a profile for the AttendX team." onClose={() => setModal(null)}><DeveloperForm onSubmit={addDeveloper} /></ModalFrame>}
-          {modal === 'more' && <MorePanel page={page} navigate={navigate} onClose={() => setModal(null)} />}
+          {modal === 'more' && <MorePanel page={page} navigate={navigate} onClose={() => setModal(null)} isSignedIn={Boolean(isSignedIn)} onSignIn={() => openAuth('sign-in')} onSignOut={handleSignOut} />}
           {toast && <div data-testid="toast-success" className="fixed bottom-24 left-1/2 z-[80] flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl dark:bg-white dark:text-slate-900"><CheckCircle2 size={17} className="text-emerald-400" />{toast}</div>}
         </div>
       </TooltipProvider>
@@ -296,6 +327,19 @@ function Sidebar({ page, navigate }: { page: Page; navigate: (page: Page) => voi
   </aside>;
 }
 
+function AuthScreen({ route }: { route: Exclude<AuthRoute, null> }) {
+  const isSignIn = route === 'sign-in';
+  return <div className="grain flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_70%_-10%,hsl(204_100%_95%/.9),transparent_38%),hsl(var(--background))] px-4 py-8">
+    <div className="w-full max-w-[440px]">
+      <button onClick={() => window.location.assign(authBasePath || '/')} className="mb-5 flex items-center gap-3 text-left">
+        <span className="flex h-10 w-10 items-center justify-center rounded-[13px] bg-primary text-lg font-extrabold text-primary-foreground shadow-lg shadow-blue-900/20">A</span>
+        <span><span className="block text-[17px] font-extrabold tracking-[-.04em]">Attend<span className="text-primary">X</span></span><span className="block text-[10px] font-medium uppercase tracking-[.18em] text-muted-foreground">Campus companion</span></span>
+      </button>
+      {isSignIn ? <SignIn routing="path" path={`${authBasePath}/sign-in`} signUpUrl={`${authBasePath}/sign-up`} /> : <SignUp routing="path" path={`${authBasePath}/sign-up`} signInUrl={`${authBasePath}/sign-in`} />}
+    </div>
+  </div>;
+}
+
 function NavButton({ page, active, navigate, dark = false }: { page: Page; active: boolean; navigate: (page: Page) => void; dark?: boolean }) {
   const Icon = pageMeta[page].icon;
   return <button data-testid={`nav-${page}`} onClick={() => navigate(page)} className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] font-semibold transition-all ${active ? (dark ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-md shadow-cyan-950/20' : 'bg-primary text-primary-foreground') : (dark ? 'text-slate-400 hover:bg-sidebar-accent hover:text-sidebar-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground')}`}>
@@ -303,14 +347,15 @@ function NavButton({ page, active, navigate, dark = false }: { page: Page; activ
   </button>;
 }
 
-function Topbar({ page, today, dark, setDark, notify, navigate }: { page: Page; today: string; dark: boolean; setDark: (value: boolean) => void; notify: (message: string) => void; navigate: (page: Page) => void }) {
+function Topbar({ page, today, dark, setDark, notify, navigate, isSignedIn, userName, onSignIn }: { page: Page; today: string; dark: boolean; setDark: (value: boolean) => void; notify: (message: string) => void; navigate: (page: Page) => void; isSignedIn: boolean; userName: string; onSignIn: () => void }) {
+  const initials = userName.split(/\s+/).filter(Boolean).map((part) => part[0]).join('').slice(0, 2).toUpperCase() || 'AK';
   return <header className="sticky top-0 z-30 flex h-[72px] items-center justify-between border-b border-border/70 bg-background/80 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
     <div><p className="text-[11px] font-semibold uppercase tracking-[.16em] text-muted-foreground">{today}</p><h1 data-testid="text-current-page" className="mt-0.5 text-xl font-extrabold tracking-[-.035em] sm:text-2xl">{page === 'home' ? 'Good morning, Aarav' : pageMeta[page].label}</h1></div>
     <div className="flex items-center gap-1.5 sm:gap-3">
       <button data-testid="button-search" onClick={() => notify('Search is ready for your campus content.')} className="hidden h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground sm:flex"><Search size={18} /></button>
       <button data-testid="button-theme-topbar" onClick={() => setDark(!dark)} className="flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground">{dark ? <Sun size={18} /> : <Moon size={18} />}</button>
       <button data-testid="button-notifications" onClick={() => notify('You are all caught up.')} className="relative flex h-9 w-9 items-center justify-center rounded-xl text-muted-foreground transition hover:bg-muted hover:text-foreground"><Bell size={18} /><span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-accent" /></button>
-      <button data-testid="button-avatar-topbar" onClick={() => navigate('profile')} className="ml-1 flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-xs font-extrabold text-primary-foreground">AK</button>
+      {isSignedIn ? <button data-testid="button-avatar-topbar" title="Open profile" onClick={() => navigate('profile')} className="ml-1 flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-xs font-extrabold text-primary-foreground">{initials}</button> : <button data-testid="button-sign-in-topbar" onClick={onSignIn} className="ml-1 rounded-xl bg-primary px-3.5 py-2 text-xs font-extrabold text-primary-foreground transition hover:bg-primary/90">Sign in</button>}
     </div>
   </header>;
 }
@@ -454,6 +499,14 @@ function DeveloperAdminPage({ developers, updateDeveloper, handlePhoto, removeDe
   </div>;
 }
 
+function AdminLoadingState() {
+  return <div className="glass-card flex min-h-64 items-center justify-center rounded-2xl p-8 text-center"><div><div className="mx-auto h-9 w-9 animate-spin rounded-full border-4 border-primary/20 border-t-primary" /><p className="mt-4 text-sm font-bold">Checking your access…</p></div></div>;
+}
+
+function AdminAccessWall({ onSignIn }: { onSignIn: () => void }) {
+  return <div className="glass-card relative overflow-hidden rounded-[26px] p-6 sm:p-10"><div className="absolute -right-20 -top-24 h-64 w-64 rounded-full border-[30px] border-primary/10" /><div className="relative max-w-xl"><div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-primary dark:bg-blue-950/60"><LockKeyhole size={22} /></div><p className="mt-6 text-[11px] font-bold uppercase tracking-[.17em] text-primary">Protected workspace</p><h2 className="mt-2 text-2xl font-extrabold tracking-[-.045em] sm:text-4xl">Sign in to manage developers.</h2><p className="mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">Developer Management is restricted to signed-in AttendX team members. Public developer profiles remain available without an account.</p><button data-testid="button-admin-sign-in" onClick={onSignIn} className="mt-6 flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-extrabold text-primary-foreground"><LockKeyhole size={15} /> Sign in to continue</button></div></div>;
+}
+
 function DeveloperAdminCard({ developer, updateDeveloper, handlePhoto, removeDeveloper, notify }: { developer: Developer; updateDeveloper: (id: string, patch: Partial<Developer>) => void; handlePhoto: (id: string, file: File | undefined) => void; removeDeveloper: (id: string) => void; notify: (message: string) => void }) {
   const field = (key: keyof Developer, value: string) => updateDeveloper(developer.id, { [key]: value } as Partial<Developer>);
   return <section data-testid={`admin-developer-${developer.id}`} className="glass-card rounded-2xl p-4 sm:p-6">
@@ -527,9 +580,9 @@ function FocusDialog({ seconds, running, setRunning, reset, onClose }: { seconds
   return <div className="text-center"><div className="mx-auto flex h-44 w-44 items-center justify-center rounded-full border-[11px] border-primary/15 bg-blue-50 dark:bg-blue-950/30"><div><p data-testid="text-focus-dialog-timer" className="font-mono text-4xl font-bold tracking-[-.08em]">{formatStudyTimer(seconds)}</p><p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{running ? 'In focus' : 'Paused'}</p></div></div><div className="mt-7 flex justify-center gap-2"><button data-testid="button-focus-toggle-dialog" onClick={() => setRunning(!running)} className="flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-xs font-extrabold text-primary-foreground">{running ? <Pause size={16} /> : <Play size={16} />}{running ? 'Pause' : 'Start focus'}</button><button data-testid="button-focus-reset-dialog" onClick={reset} className="flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-xs font-bold"><RotateCcw size={15} /> Reset</button></div><button data-testid="button-focus-done" onClick={onClose} className="mt-5 text-xs font-bold text-muted-foreground hover:text-primary">Keep this session in my study log</button></div>;
 }
 
-function MorePanel({ page, navigate, onClose }: { page: Page; navigate: (page: Page) => void; onClose: () => void }) {
+function MorePanel({ page, navigate, onClose, isSignedIn, onSignIn, onSignOut }: { page: Page; navigate: (page: Page) => void; onClose: () => void; isSignedIn: boolean; onSignIn: () => void; onSignOut: () => void }) {
   const pages: Page[] = ['routine', 'notes', 'exams', 'community', 'assistant', 'developers', 'admin', 'settings'];
-  return <div className="fixed inset-0 z-[60] flex items-end bg-slate-950/35 backdrop-blur-sm sm:hidden"><div className="w-full rounded-t-[26px] bg-card p-5"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-extrabold">More of AttendX</h2><p className="mt-1 text-xs text-muted-foreground">Everything else, still one tap away.</p></div><button data-testid="button-close-more" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground"><X size={18} /></button></div><div className="grid grid-cols-2 gap-2">{pages.map((item) => <button data-testid={`more-nav-${item}`} onClick={() => navigate(item)} key={item} className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-bold ${page === item ? 'border-primary bg-blue-50 text-primary dark:bg-blue-950/30' : 'border-border'}`}><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted"><MoreIcon page={item} /></span>{pageMeta[item].label}</button>)}</div></div></div>;
+  return <div className="fixed inset-0 z-[60] flex items-end bg-slate-950/35 backdrop-blur-sm sm:hidden"><div className="w-full rounded-t-[26px] bg-card p-5"><div className="mb-5 flex items-center justify-between"><div><h2 className="text-lg font-extrabold">More of AttendX</h2><p className="mt-1 text-xs text-muted-foreground">Everything else, still one tap away.</p></div><button data-testid="button-close-more" onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground"><X size={18} /></button></div><div className="grid grid-cols-2 gap-2">{pages.map((item) => <button data-testid={`more-nav-${item}`} onClick={() => navigate(item)} key={item} className={`flex items-center gap-2 rounded-xl border p-3 text-left text-xs font-bold ${page === item ? 'border-primary bg-blue-50 text-primary dark:bg-blue-950/30' : 'border-border'}`}><span className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted"><MoreIcon page={item} /></span>{pageMeta[item].label}</button>)}</div><div className="mt-4 border-t border-border pt-4">{isSignedIn ? <button data-testid="button-sign-out" onClick={onSignOut} className="flex w-full items-center justify-center rounded-xl border border-border px-4 py-3 text-xs font-extrabold text-muted-foreground">Sign out</button> : <button data-testid="button-sign-in-more" onClick={onSignIn} className="flex w-full items-center justify-center rounded-xl bg-primary px-4 py-3 text-xs font-extrabold text-primary-foreground">Sign in to manage developers</button>}</div></div></div>;
 }
 
 function MoreIcon({ page }: { page: Page }) { const Icon = pageMeta[page].icon; return <Icon size={16} />; }
